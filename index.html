@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CuacaNusantara - Prakiraan Cuaca BMKG Resmi</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark bg-slate-900 min-h-screen text-slate-100 flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+
+  <!-- TOP NAVBAR -->
+  <header class="w-full px-4 sm:px-8 py-5 border-b border-white/10 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- LOGO -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+          <i class="fa-solid fa-cloud-sun-rain text-white text-xl animate-float"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">CuacaNusantara</h1>
+          <p class="text-xs text-cyan-400 font-medium">Data Resmi BMKG Republik Indonesia</p>
+        </div>
+      </div>
+
+      <!-- SEARCH BAR WITH AUTOCOMPLETE -->
+      <div class="relative w-full md:w-96">
+        <div class="relative flex items-center">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 text-slate-400"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Cari kota di Indonesia (misal: Jakarta, Surabaya, Bandung)..." 
+            class="w-full pl-11 pr-10 py-2.5 rounded-full glass-input text-sm placeholder:text-slate-400 focus:outline-none transition-all shadow-inner"
+            autocomplete="off"
+          />
+          <button 
+            id="clearSearchBtn" 
+            class="hidden absolute right-3 text-slate-400 hover:text-white transition-colors"
+            title="Bersihkan pencarian"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- AUTOCOMPLETE DROPDOWN -->
+        <div 
+          id="autocompleteDropdown" 
+          class="hidden absolute left-0 right-0 top-full mt-2 glass-card rounded-2xl overflow-hidden z-50 shadow-2xl max-h-60 overflow-y-auto divide-y divide-white/5"
+        ></div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex items-center gap-3">
+        <!-- GPS LOCATION BUTTON -->
+        <button 
+          id="gpsBtn"
+          class="px-3.5 py-2.5 rounded-xl glass-card glass-card-hover text-slate-200 text-sm font-medium flex items-center gap-2"
+          title="Gunakan Lokasi Saat Ini (GPS)"
+        >
+          <i class="fa-solid fa-location-crosshairs text-cyan-400"></i>
+          <span class="hidden sm:inline">Lokasi Saya</span>
+        </button>
+
+        <!-- THEME TOGGLE BUTTON (LIGHT / DARK) -->
+        <button 
+          id="themeToggleBtn"
+          class="px-3.5 py-2.5 rounded-xl glass-card glass-card-hover text-slate-200 text-sm font-medium flex items-center gap-2"
+          title="Ganti Mode Terang / Gelap"
+        >
+          <i id="themeIcon" class="fa-solid fa-moon text-amber-400"></i>
+          <span id="themeLabel" class="hidden sm:inline">Gelap</span>
+        </button>
+
+        <!-- TEMP UNIT TOGGLE -->
+        <div class="glass-card rounded-xl p-1 flex items-center">
+          <button id="unitCelcius" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white/20 text-white shadow-sm">°C</button>
+          <button id="unitFahrenheit" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">°F</button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-8 py-8 w-full flex-1 flex flex-col gap-8">
+
+    <!-- QUICK CITY CHIPS -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mr-2 whitespace-nowrap">
+        <i class="fa-solid fa-fire text-amber-400"></i> Kota Populer:
+      </span>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Jakarta">Jakarta</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Surabaya">Surabaya</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Bandung">Bandung</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Semarang">Semarang</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Yogyakarta">Yogyakarta</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Denpasar">Bali (Denpasar)</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Medan">Medan</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Makassar">Makassar</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Palembang">Palembang</button>
+      <button class="quick-city-chip px-4 py-1.5 rounded-full glass-card glass-card-hover text-xs font-medium text-slate-200 whitespace-nowrap" data-city="Balikpapan">Balikpapan</button>
+    </div>
+
+    <!-- LOADING STATE SKELETON -->
+    <div id="loadingSkeleton" class="hidden flex flex-col gap-6 animate-pulse">
+      <div class="h-64 rounded-3xl glass-card"></div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="h-28 rounded-2xl glass-card"></div>
+        <div class="h-28 rounded-2xl glass-card"></div>
+        <div class="h-28 rounded-2xl glass-card"></div>
+        <div class="h-28 rounded-2xl glass-card"></div>
+        <div class="h-28 rounded-2xl glass-card"></div>
+        <div class="h-28 rounded-2xl glass-card"></div>
+      </div>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div id="errorCard" class="hidden glass-card border-red-500/40 bg-red-500/10 rounded-3xl p-8 text-center max-w-lg mx-auto w-full">
+      <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4 text-red-400 text-2xl">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 id="errorTitle" class="text-xl font-bold text-red-200 mb-2">Gagal Memuat Data</h3>
+      <p id="errorMessage" class="text-sm text-red-300/80 mb-6">Terjadi kesalahan saat mengambil prakiraan cuaca dari BMKG.</p>
+      <button id="retryBtn" class="px-6 py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white font-bold text-sm transition-all shadow-lg shadow-red-500/20">
+        Coba Lagi
+      </button>
+    </div>
+
+    <!-- MAIN WEATHER DISPLAY CONTENT -->
+    <div id="weatherContent" class="flex flex-col gap-8">
+
+      <!-- HERO WEATHER CARD -->
+      <section class="glass-card rounded-3xl p-6 sm:p-10 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
+        <!-- Decorative Glow -->
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Left Details -->
+        <div class="flex flex-col items-start gap-3 text-left w-full lg:w-auto">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-cyan-400 backdrop-blur-sm border border-white/10 flex items-center gap-1.5">
+              <i class="fa-solid fa-location-dot"></i> <span id="locationText">Gambir, Kota Adm. Jakarta Pusat</span>
+            </span>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-xs font-semibold text-emerald-400 backdrop-blur-sm border border-emerald-500/30">
+              BMKG Official
+            </span>
+            <span id="updateTimeText" class="text-xs text-slate-400">Diperbarui: -</span>
+          </div>
+
+          <div class="mt-2 flex items-baseline gap-3">
+            <h2 id="tempText" class="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight">29°C</h2>
+            <div class="flex flex-col">
+              <span id="weatherMainText" class="text-xl sm:text-2xl font-bold text-slate-100">Cerah</span>
+              <span id="provinceText" class="text-sm text-slate-300">DKI Jakarta</span>
+            </div>
+          </div>
+
+          <div class="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-300">
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-temperature-arrow-up text-red-400"></i>
+              <span>Tertinggi: <strong id="tempMaxText" class="text-slate-100">34°C</strong></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i class="fa-solid fa-temperature-arrow-down text-blue-400"></i>
+              <span>Terendah: <strong id="tempMinText" class="text-slate-100">25°C</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Weather Icon & Animation -->
+        <div class="flex flex-col items-center justify-center text-center">
+          <img id="weatherIcon" src="https://api-apps.bmkg.go.id/storage/icon/cuaca/cerah-pm.svg" alt="Cuaca BMKG" class="w-36 h-36 sm:w-44 sm:h-44 object-contain filter drop-shadow-2xl animate-float" />
+          <p id="weatherDescText" class="text-lg font-semibold text-cyan-400 capitalize -mt-2">Cerah</p>
+        </div>
+
+      </section>
+
+      <!-- METRICS GRID (6 Cards) -->
+      <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        
+        <!-- Humidity -->
+        <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+            <span>Kelembaban Udara</span>
+            <i class="fa-solid fa-droplet text-blue-400 text-sm"></i>
+          </div>
+          <div class="mt-1">
+            <span id="humidityText" class="text-2xl font-bold text-slate-100">71%</span>
+            <p id="humidityDesc" class="text-[11px] text-slate-400 mt-0.5">Normal</p>
+          </div>
+        </div>
+
+        <!-- Wind Speed -->
+        <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+            <span>Kecepatan Angin</span>
+            <i class="fa-solid fa-wind text-teal-400 text-sm"></i>
+          </div>
+          <div class="mt-1">
+            <span id="windText" class="text-2xl font-bold text-slate-100">7.3 km/jam</span>
+            <p id="windDirText" class="text-[11px] text-slate-400 mt-0.5">Arah NE</p>
+          </div>
+        </div>
+
+        <!-- Cloud Cover -->
+        <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+            <span>Tutupan Awan</span>
+            <i class="fa-solid fa-cloud text-sky-400 text-sm"></i>
+          </div>
+          <div class="mt-1">
+            <span id="cloudinessText" class="text-2xl font-bold text-slate-100">21%</span>
+            <p id="cloudDescText" class="text-[11px] text-slate-400 mt-0.5">Sedikit Awan</p>
+          </div>
+        </div>
+
+        <!-- Precipitation / Curah Hujan -->
+        <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+            <span>Curah Hujan</span>
+            <i class="fa-solid fa-cloud-showers-heavy text-cyan-400 text-sm"></i>
+          </div>
+          <div class="mt-1">
+            <span id="precipText" class="text-2xl font-bold text-slate-100">0 mm</span>
+            <p id="precipDescText" class="text-[11px] text-slate-400 mt-0.5">Tidak Berpotensi Hujan</p>
+          </div>
+        </div>
+
+        <!-- Kode Wilayah ADM4 -->
+        <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+            <span>Kode ADM4 BMKG</span>
+            <i class="fa-solid fa-map-pin text-amber-400 text-sm"></i>
+          </div>
+          <div class="mt-1">
+            <span id="adm4CodeText" class="text-sm font-mono font-bold text-amber-400">31.71.01.1001</span>
+            <p id="adm4DescText" class="text-[11px] text-slate-400 mt-0.5">Wilayah Tingkat IV</p>
+          </div>
+        </div>
+
+        <!-- Zona Waktu -->
+        <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between gap-3">
+          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+            <span>Zona Waktu</span>
+            <i class="fa-solid fa-clock text-indigo-400 text-sm"></i>
+          </div>
+          <div class="mt-1">
+            <span id="timezoneText" class="text-xl font-bold text-slate-100">WIB</span>
+            <p id="timezoneDescText" class="text-[11px] text-slate-400 mt-0.5">Asia/Jakarta</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- HOURLY FORECAST -->
+      <section class="glass-card rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <i class="fa-solid fa-clock text-cyan-400"></i> Prakiraan Cuaca Jam-jaman BMKG
+          </h3>
+          <span class="text-xs text-slate-400">Interval 3 Jam</span>
+        </div>
+        <div id="hourlyContainer" class="flex items-center gap-4 overflow-x-auto pb-4 scrollbar-thin"></div>
+      </section>
+
+      <!-- 3-DAY FORECAST -->
+      <section class="glass-card rounded-3xl p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+            <i class="fa-solid fa-calendar-days text-cyan-400"></i> Prakiraan Cuaca Harian BMKG
+          </h3>
+        </div>
+        <div id="dailyContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="w-full border-t border-white/10 py-6 px-4 text-center text-xs text-slate-400 mt-12 bg-slate-900/60 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>&copy; 2026 CuacaNusantara. Menggunakan API Publik BMKG (Badan Meteorologi, Klimatologi, dan Geofisika Indonesia).</p>
+      <div class="flex items-center gap-4">
+        <a href="https://api.bmkg.go.id" target="_blank" rel="noopener" class="hover:text-cyan-400 transition-colors">BMKG API Portal</a>
+        <span>•</span>
+        <span class="text-emerald-400"><i class="fa-solid fa-shield-halved"></i> Bebas Tanpa API Key</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
